@@ -21,3 +21,19 @@ License
 -------
 
 GPLv3. See LICENSE.txt.
+
+
+Add 3rd lib
+-------
+
+libltc
+```bash
+libltc is static lib
+```
+[cicada-libltc](https://github.com/LoveCicada/libltc)
+
+
+- quill
+```bash
+quill is pure include file
+```
