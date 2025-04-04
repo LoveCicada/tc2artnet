@@ -37,3 +37,12 @@ libltc is static lib
 ```bash
 quill is pure include file
 ```
+Package
+-------
+
+- windows
+```bash
+windeployqt.exe --dir deploy .\Debug\TC2Artnet.exe
+
+windeployqt.exe TC2Artnet.exe
+```
