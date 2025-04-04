@@ -1,7 +1,14 @@
 
 #include "ltcdecoder.h"
-
 #include <ltc.h>
+
+#define _CRT_SECURE_NO_WARNINGS 1
+
+#include "quill/Backend.h"
+#include "quill/Frontend.h"
+#include "quill/LogMacros.h"
+#include "quill/Logger.h"
+#include "quill/sinks/FileSink.h"
 
 #define GETLTC static_cast<LTCDecoder *>(_private)
 
@@ -9,6 +16,8 @@
 LTCDecoder::LTCDecoder(QObject *parent)
   :QIODevice(parent)
 {
+    InitLog();
+
   int apv = 1920;
   int queue_size = 32;
   _private = ltc_decoder_create(apv, queue_size);
@@ -22,6 +31,8 @@ LTCDecoder::~LTCDecoder()
   LTCDecoder *ltc = GETLTC;
   ltc_decoder_free(ltc);
   _private = nullptr;
+
+  UnitLog();
 }
 
 
@@ -93,7 +104,46 @@ qint64 LTCDecoder::writeData(const char *data, qint64 len)
       frame.type = TimecodeType::Film24;
 
     newFrame(frame);
+
+    // Obtain existing logger to log
+    quill::Logger* logger = quill::Frontend::get_logger("root");
+    LOG_INFO(logger, "hh:mm:ss.f: {}:{}:{}.{}, rate:{}", 
+        frame.hours, frame.minutes, frame.seconds, frame.frames, static_cast<int8_t>(frame.type));
+
+    /* //example
+    int i = 1, j = 2;
+    double k = 3.1;
+    LOG_INFO(logger, "Logging int:{}, int:{}, double:{}", i, j, k);*/
+
   }
 
   return len;
+}
+
+void LTCDecoder::InitLog()
+{
+    quill::Backend::start();
+
+    //Fronted
+    auto file_sink = quill::Frontend::create_or_get_sink<quill::FileSink>(
+        "trivial_logging.log",
+        []()
+    {
+        quill::FileSinkConfig cfg;
+        cfg.set_open_mode('w');
+        cfg.set_filename_append_option(quill::FilenameAppendOption::StartDateTime);
+        return cfg;
+    }(),
+        quill::FileEventNotifier{}
+    );
+
+    quill::Logger* logger = quill::Frontend::create_or_get_logger(
+        "root", std::move(file_sink)
+    );
+
+}
+
+void LTCDecoder::UnitLog()
+{
+    quill::Backend::stop();
 }

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(TC2Artnet LANGUAGES CXX)
 
 # 设置 C++ 标准
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -15,7 +15,7 @@ add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x060000)
 # 包含目录
 include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_SOURCE_DIR}/3rd/libltc/include)
-include_directories(${CMAKE_SOURCE_DIR}/../libltc_build/include)
+include_directories(${CMAKE_SOURCE_DIR}/3rd/quill/include)
 
 # 源文件和头文件
 set(SOURCES

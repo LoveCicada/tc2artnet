@@ -21,6 +21,10 @@ public:
   virtual inline qint64 readData(char *, qint64) override { return 0; }
   virtual qint64 writeData(const char *data, qint64 len) override;
 
+private:
+	void InitLog();
+	void UnitLog();
+
 signals:
   void newFrame(TimecodeFrame frame);
 

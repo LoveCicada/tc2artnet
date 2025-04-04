@@ -5,7 +5,6 @@
 
 #include "timecode_frame.h"
 
-
 TC2ArtNet::TC2ArtNet(QObject *parent)
   :QObject(parent)
 {
