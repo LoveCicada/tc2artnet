@@ -40,6 +40,24 @@ quill is pure include file
 Package
 -------
 
+- build Debug
+```bash
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake --build . --config Debug
+```
+
+- build Release
+```bash
+cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build . --config Release
+```
+
+- build RelWithDebInfo
+```bash
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+cmake --build . --config RelWithDebInfo
+```
+
 - windows
 ```bash
 windeployqt.exe --dir deploy .\Debug\TC2Artnet.exe

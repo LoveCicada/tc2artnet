@@ -54,7 +54,7 @@ if(WIN32)
 endif()
 
 # 添加可执行文件
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS})
 
 # 查找 Qt 模块
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Network Multimedia)
@@ -68,9 +68,24 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt5::Multimedia
 )
 
-# 链接 libltc 库
-message(STATUS "LINK_DIR: ${CMAKE_SOURCE_DIR}/3rd/libltc/lib/Debug")
-target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/3rd/libltc/lib/Debug/ltc.lib)
+# 根据构建类型设置 libltc 的路径和库名称
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(LTC_LIB_DIR ${CMAKE_SOURCE_DIR}/3rd/libltc/lib/Debug)
+elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    set(LTC_LIB_DIR ${CMAKE_SOURCE_DIR}/3rd/libltc/lib/RelWithDebInfo)
+else()
+    set(LTC_LIB_DIR ${CMAKE_SOURCE_DIR}/3rd/libltc/lib/Release)
+endif()
+
+set(LTC_LIB_NAME ltc)
+
+# # 添加 libltc 的链接目录
+# link_directories(${LTC_LIB_DIR})
+
+# # 链接 libltc 库
+# target_link_libraries(${PROJECT_NAME} PRIVATE ${LTC_LIB_NAME})
+
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LTC_LIB_DIR}/${LTC_LIB_NAME}.lib)
 
 get_target_property(LINK_LIBS ${PROJECT_NAME} LINK_LIBRARIES)
 message(STATUS "Linked libraries: ${LINK_LIBS}")
@@ -78,10 +93,6 @@ message(STATUS "Linked libraries: ${LINK_LIBS}")
 # Windows 特定配置
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE Winmm)
-
-    if(CMAKE_BUILD_TYPE STREQUAL "Release")
-        set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS_RELEASE "/MT")
-    endif()
 endif()
 
 # 安装规则
