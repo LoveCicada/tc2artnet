@@ -29,6 +29,8 @@ signals:
 
 private:
   void reset_qf_vars();
+  void InitLog();
+  void UnitLog();
 
   MIDIDev _midi_dev {};
   int _current_device {-1};

@@ -1,6 +1,14 @@
 
 #include "mtcreceiver.h"
 
+#define _CRT_SECURE_NO_WARNINGS 1
+
+#include "quill/Backend.h"
+#include "quill/Frontend.h"
+#include "quill/LogMacros.h"
+#include "quill/Logger.h"
+#include "quill/sinks/FileSink.h"
+
 
 namespace {
 constexpr int FRAME_MS_MIN = 30;
@@ -13,6 +21,7 @@ static TimecodeFrame bits_to_frame(const uint8_t bits[8]);
 MTCReceiver::MTCReceiver(QObject *parent)
   :QObject(parent)
 {
+  InitLog();
   connect(&_midi_dev, &MIDIDev::midiMessage, this, &MTCReceiver::_processMidiMessage);
 }
 
@@ -20,6 +29,7 @@ MTCReceiver::MTCReceiver(QObject *parent)
 MTCReceiver::~MTCReceiver()
 {
   stop();
+  UnitLog();
 }
 
 
@@ -98,12 +108,28 @@ void MTCReceiver::_processMidiMessage(int time_ms, int status, int data1, int da
   // On QF 0, we transmit the last assembled frame + 2
   if(qf_num == 0 && _last_qf_num == 7 &&
      dt > (FRAME_MS_MIN*2) && dt < (FRAME_MS_MAX*2))
-    emit newFrame(timecode_frame_add(_last_frame, 2));
+  {
+    TimecodeFrame frame = timecode_frame_add(_last_frame, 2);
+    emit newFrame(frame);
+    
+    // Log MTC timecode
+    quill::Logger* logger = quill::Frontend::get_logger("root");
+    LOG_INFO(logger, "MTC hh:mm:ss.f: {}:{}:{}.{}, rate:{}", 
+        frame.hours, frame.minutes, frame.seconds, frame.frames, static_cast<int8_t>(frame.type));
+  }
 
   // On QF 4, we transmit the last assembled frame + 3
   if(qf_num == 4 && _last_qf_num == 3 &&
      dt > FRAME_MS_MIN && dt < FRAME_MS_MAX)
-    emit newFrame(timecode_frame_add(_last_frame, 3));
+  {
+    TimecodeFrame frame = timecode_frame_add(_last_frame, 3);
+    emit newFrame(frame);
+    
+    // Log MTC timecode
+    quill::Logger* logger = quill::Frontend::get_logger("root");
+    LOG_INFO(logger, "MTC hh:mm:ss.f: {}:{}:{}.{}, rate:{}", 
+        frame.hours, frame.minutes, frame.seconds, frame.frames, static_cast<int8_t>(frame.type));
+  }
 
   if(qf_num == 0)
     _last_qf_time = time_ms;
@@ -125,6 +151,35 @@ void MTCReceiver::reset_qf_vars()
     _qf_bits[i] = 0;
 
   timecode_frame_reset(_last_frame);
+}
+
+
+void MTCReceiver::InitLog()
+{
+    quill::Backend::start();
+
+    //Fronted
+    auto file_sink = quill::Frontend::create_or_get_sink<quill::FileSink>(
+        "trivial_logging.log",
+        []()
+    {
+        quill::FileSinkConfig cfg;
+        cfg.set_open_mode('w');
+        cfg.set_filename_append_option(quill::FilenameAppendOption::StartDateTime);
+        return cfg;
+    }(),
+        quill::FileEventNotifier{}
+    );
+
+    quill::Logger* logger = quill::Frontend::create_or_get_logger(
+        "root", std::move(file_sink)
+    );
+
+}
+
+void MTCReceiver::UnitLog()
+{
+    quill::Backend::stop();
 }
 
 
